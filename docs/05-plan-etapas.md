@@ -44,10 +44,10 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 > Hacé la Etapa 3: pantallas de Configuración y Servicios del panel según docs/02-modulos.md (B3 y B5).
 
 ## Etapa 4 — Sitio público
-- [ ] `/[slug]` con landing completa desde la base
-- [ ] Color y datos de cada veterinaria aplicados
-- [ ] 404 amable si el slug no existe o la veterinaria está inactiva
-- [ ] Metadatos para compartir en WhatsApp e Instagram
+- [x] `/[slug]` con landing completa desde la base
+- [x] Color y datos de cada veterinaria aplicados
+- [x] 404 amable si el slug no existe o la veterinaria está inactiva
+- [x] Metadatos para compartir en WhatsApp e Instagram
 
 > Hacé la Etapa 4: la landing pública en /[slug] según docs/02-modulos.md A1. Pensada para celular primero.
 
@@ -110,3 +110,6 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 | 24/10/2026 | Slugs reservados para veterinarias: `panel`, `ingresar`, `api` (son rutas del sistema). Tenerlo en cuenta en la Etapa 9 |
 | 24/10/2026 | Migraciones con la base local: `npm run migracion -- nombre` (`scripts/nueva-migracion.mjs`), porque `prisma migrate dev` falla con la base sombra de `prisma dev` |
 | 24/10/2026 | Railway ignoraba `railway.json` (formato deprecado): el pre-deploy nunca corrió y producción quedó sin tablas. Se borró `railway.json` y las migraciones pasan a correr en `npm start` (`prisma migrate deploy && node scripts/iniciar.mjs`) |
+| 24/10/2026 | Etapa 4: diseño tomado de las referencias de `Veterinaria Puro Pelo/` (estructura de "Veterinaria Alfa" + estilo del Instagram de Puro Pelo: fondo suave, ola, títulos Barlow Condensed). Un solo color por veterinaria (`colorPrimario`); los tonos suave y oscuro se derivan con `color-mix`. Fotos genéricas de Unsplash (licencia libre, uso comercial) en `public/fotos/` hasta tener fotos propias. La landing se cachea por slug (`lib/landing.ts`, etiqueta `landing-<slug>`): la Etapa 3 tiene que invalidarla al guardar cambios |
+| 24/10/2026 | Etapa 4: el 404 de un slug inexistente se muestra bien pero responde con código 200 (la página llega en streaming). `/[slug]/reservar` es provisoria y deriva a WhatsApp hasta la Etapa 5. "Próximo turno disponible" en la portada queda para la Etapa 5 |
+| 24/10/2026 | Segunda demo: "Puro Pelo" en `/puropelo` (color, nombre y doctoras Fer, Agus y Ayu de su Instagram; dirección, WhatsApp y precios de ejemplo). Usuarios `dueno@puropelo.demo` y `recepcion@puropelo.demo` con `DEMO_PASSWORD` |

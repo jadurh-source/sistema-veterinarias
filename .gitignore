@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# material de referencia de clientes (capturas, modelos): no va al repo
+/Veterinaria Puro Pelo/
