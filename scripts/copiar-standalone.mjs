@@ -9,6 +9,9 @@ if (!existsSync(destino)) {
   process.exit(1);
 }
 
-cpSync("public", `${destino}/public`, { recursive: true });
+// public/ puede no existir: Git no guarda carpetas vacías
+if (existsSync("public")) {
+  cpSync("public", `${destino}/public`, { recursive: true });
+}
 cpSync(".next/static", `${destino}/.next/static`, { recursive: true });
 console.log("Archivos estáticos copiados a .next/standalone");
