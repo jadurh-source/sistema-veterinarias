@@ -52,10 +52,10 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 > Hacé la Etapa 4: la landing pública en /[slug] según docs/02-modulos.md A1. Pensada para celular primero.
 
 ## Etapa 5 — Disponibilidad y reserva online
-- [ ] `lib/disponibilidad.ts` con pruebas unitarias de los casos de docs/04 sección 1
-- [ ] Flujo de reserva en 4 pasos
-- [ ] Verificación contra doble reserva
-- [ ] "Próximo turno disponible" en la portada
+- [x] `lib/disponibilidad.ts` con pruebas unitarias de los casos de docs/04 sección 1
+- [x] Flujo de reserva en 4 pasos
+- [x] Verificación contra doble reserva
+- [x] "Próximo turno disponible" en la portada
 
 > Hacé la Etapa 5. Primero escribí lib/disponibilidad.ts con sus tests cubriendo todas las reglas de docs/04-reglas-negocio.md secciones 1, 2 y 7; recién después el flujo de reserva de docs/02 A2.
 
@@ -113,3 +113,5 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 | 24/10/2026 | Etapa 4: diseño tomado de las referencias de `Veterinaria Puro Pelo/` (estructura de "Veterinaria Alfa" + estilo del Instagram de Puro Pelo: fondo suave, ola, títulos Barlow Condensed). Un solo color por veterinaria (`colorPrimario`); los tonos suave y oscuro se derivan con `color-mix`. Fotos genéricas de Unsplash (licencia libre, uso comercial) en `public/fotos/` hasta tener fotos propias. La landing se cachea por slug (`lib/landing.ts`, etiqueta `landing-<slug>`): la Etapa 3 tiene que invalidarla al guardar cambios |
 | 24/10/2026 | Etapa 4: el 404 de un slug inexistente se muestra bien pero responde con código 200 (la página llega en streaming). `/[slug]/reservar` es provisoria y deriva a WhatsApp hasta la Etapa 5. "Próximo turno disponible" en la portada queda para la Etapa 5 |
 | 24/10/2026 | Segunda demo: "Puro Pelo" en `/puropelo` (color, nombre y doctoras Fer, Agus y Ayu de su Instagram; dirección, WhatsApp y precios de ejemplo). Usuarios `dueno@puropelo.demo` y `recepcion@puropelo.demo` con `DEMO_PASSWORD` |
+| 25/10/2026 | Etapa 5: el flujo de reserva vive en la URL (`?especie=&servicio=&dia=&inicio=`), cada paso lo arma el servidor. La acción `reservarTurno` (`src/server/reservas.ts`) es la única sin login: valida con Zod, saca la veterinaria del slug y vuelve a calcular la disponibilidad dentro de una transacción con `pg_advisory_xact_lock` por veterinaria. Probado de punta a punta con dos personas reservando el mismo horario |
+| 25/10/2026 | Etapa 5: especie OTRO solo ve servicios TODAS (agregado a docs/04). WhatsApp se guarda como +549 + 10 dígitos; se acepta con 0, 15 o +54 9. Campo trampa oculto contra robots en el formulario. "Próximo turno disponible" = primer horario de una consulta clínica (o del primer servicio visible) en los próximos 7 días |

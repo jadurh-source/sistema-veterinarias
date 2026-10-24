@@ -55,7 +55,7 @@ PENDIENTE ──Confirmar──► CONFIRMADO ──Cobrar / Atendido──► A
 
 ## 5. Clientes y mascotas
 
-- En la reserva web el cliente se identifica por su **WhatsApp normalizado**. Si existe, se usa ese cliente; si no, se crea.
+- En la reserva web el cliente se identifica por su **WhatsApp normalizado** (+549 + código de área sin 0 + número sin 15). Si existe, se usa ese cliente; si no, se crea.
 - La mascota se busca por nombre (sin distinguir mayúsculas ni acentos) dentro del cliente; si no existe, se crea.
 - Recepción puede unir clientes duplicados (etapa posterior).
 - Ausentismo de un período = (AUSENTE) / (ATENDIDO + AUSENTE).
@@ -71,6 +71,7 @@ PENDIENTE ──Confirmar──► CONFIRMADO ──Cobrar / Atendido──► A
 
 - Un servicio con especie PERRO no se ofrece para un gato, y viceversa. TODAS se ofrece a cualquiera.
 - En la reserva web el cliente elige primero la especie, y solo ve servicios compatibles.
+- Una mascota de especie OTRO (conejo, ave…) solo ve los servicios con especie TODAS.
 
 ## 8. Permisos
 

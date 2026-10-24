@@ -64,7 +64,7 @@ npx prisma db seed               # cargar datos de demo
 npm run build && npm start       # probar build de producción
 ```
 
-Base local: `npx prisma dev --name veterinarias --detach` (Postgres local de Prisma, sin Docker). Su URL TCP (`postgres://...`) va en `DATABASE_URL` del `.env` con `connection_limit=1&pgbouncer=true` (ver `.env.example`). Si aparece "prepared statement already exists", reiniciarla con `npx prisma dev stop veterinarias` y volver a levantarla. Admite una sola conexión: la concurrencia real (doble reserva) se prueba contra la base de Railway.
+Base local: `npx prisma dev --name veterinarias --detach` (Postgres local de Prisma, sin Docker). Su URL TCP (`postgres://...`) va en `DATABASE_URL` del `.env` con `connection_limit=1&pgbouncer=true` (ver `.env.example`). Si aparece "prepared statement already exists" o no responde, reiniciarla con `npx prisma dev stop veterinarias` y volver a levantarla (a veces hay que correr el comando de levantar dos veces). Admite una sola conexión: la concurrencia real (doble reserva) se prueba contra la base de Railway.
 
 ## Reglas obligatorias
 
