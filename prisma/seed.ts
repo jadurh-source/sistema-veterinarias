@@ -1,6 +1,6 @@
-// Datos de demostración: veterinaria "Huellitas" (slug huellitas).
+// Datos de demostración: veterinarias "Huellitas" (/huellitas) y "Puro Pelo" (/puropelo).
 // Los turnos son relativos a la fecha en que se corre: últimas 4 semanas y próxima semana.
-// Se puede correr varias veces: borra y vuelve a crear solo los datos de Huellitas.
+// Se puede correr varias veces: borra y vuelve a crear solo los datos de estas veterinarias.
 // Se ejecuta con Node (sin compilar): por eso los imports llevan extensión .ts.
 
 import { PrismaClient, Prisma } from "@prisma/client";
@@ -12,12 +12,12 @@ import type {
   EstadoTurno,
   MedioPago,
   OrigenTurno,
+  TipoProfesional,
 } from "@prisma/client";
 import { diaLocal, diaSemanaLocal, localAUtc, sumarDias } from "../src/lib/fechas.ts";
 
 const db = new PrismaClient();
 const ZONA = "America/Argentina/Tucuman";
-const SLUG = "huellitas";
 
 // Azar con semilla fija: el seed genera siempre la misma agenda para un mismo día
 let semilla = 20261024;
@@ -43,8 +43,8 @@ function soloFecha(dia: string): Date {
   return new Date(`${dia}T00:00:00.000Z`);
 }
 
-async function borrarHuellitas() {
-  const vet = await db.veterinaria.findUnique({ where: { slug: SLUG } });
+async function borrarDemo(slug: string) {
+  const vet = await db.veterinaria.findUnique({ where: { slug } });
   if (!vet) return;
   const where = { veterinariaId: vet.id };
   await db.aplicacionVacuna.deleteMany({ where });
@@ -109,26 +109,68 @@ function especieCompatible(servicio: EspecieServicio, mascota: Especie): boolean
   return servicio === "TODAS" || servicio === mascota;
 }
 
-async function main() {
-  await borrarHuellitas();
+type Demo = {
+  veterinaria: { slug: string; nombre: string; eslogan: string; colorPrimario: string; direccion: string | null; whatsapp: string; email: string | null };
+  dueno: { nombre: string; email: string };
+  recepcion: { nombre: string; email: string };
+  profesionales: { nombre: string; tipo: TipoProfesional; categorias: CategoriaServicio[] }[];
+  semilla: number;
+};
 
-  const vet = await db.veterinaria.create({
-    data: {
-      slug: SLUG,
+const DEMOS: Demo[] = [
+  {
+    veterinaria: {
+      slug: "huellitas",
       nombre: "Veterinaria Huellitas",
       eslogan: "Cuidamos a tu mejor amigo como parte de la familia",
       colorPrimario: "#1f6b5a",
       direccion: "Av. Mate de Luna 2450, San Miguel de Tucumán",
       whatsapp: "+5493815550100",
       email: "hola@huellitas.demo",
-      zonaHoraria: ZONA,
     },
-  });
+    dueno: { nombre: "Laura Paz", email: "dueno@demo.com" },
+    recepcion: { nombre: "Carla Núñez", email: "recepcion@demo.com" },
+    profesionales: [
+      { nombre: "Dra. Ana Morales", tipo: "VETERINARIO", categorias: ["CLINICA", "PREVENCION", "CIRUGIA", "DIAGNOSTICO"] },
+      { nombre: "Dr. Pablo Vega", tipo: "VETERINARIO", categorias: ["CLINICA", "PREVENCION", "DIAGNOSTICO"] },
+      { nombre: "Sol Giménez", tipo: "PELUQUERO", categorias: ["ESTETICA"] },
+    ],
+    semilla: 20261024,
+  },
+  {
+    // Demo para mostrarle a Veterinaria Puro Pelo: nombre, color y doctoras de su Instagram.
+    // Dirección, WhatsApp y precios son de ejemplo hasta tener los reales.
+    veterinaria: {
+      slug: "puropelo",
+      nombre: "Puro Pelo",
+      eslogan: "Cuidamos cada puro pelo como si fuera propio",
+      colorPrimario: "#2f6a96",
+      direccion: null,
+      whatsapp: "+5493815550200",
+      email: null,
+    },
+    dueno: { nombre: "Dueña Puro Pelo", email: "dueno@puropelo.demo" },
+    recepcion: { nombre: "Recepción Puro Pelo", email: "recepcion@puropelo.demo" },
+    profesionales: [
+      { nombre: "Dra. Fer", tipo: "VETERINARIO", categorias: ["CLINICA", "PREVENCION", "CIRUGIA", "DIAGNOSTICO"] },
+      { nombre: "Dra. Agus", tipo: "VETERINARIO", categorias: ["CLINICA", "PREVENCION", "DIAGNOSTICO"] },
+      { nombre: "Dra. Ayu", tipo: "VETERINARIO", categorias: ["CLINICA", "PREVENCION", "DIAGNOSTICO"] },
+      { nombre: "Peluquería Puro Pelo", tipo: "PELUQUERO", categorias: ["ESTETICA"] },
+    ],
+    semilla: 20260806,
+  },
+];
+
+async function sembrar(demo: Demo) {
+  semilla = demo.semilla;
+  await borrarDemo(demo.veterinaria.slug);
+
+  const vet = await db.veterinaria.create({ data: { ...demo.veterinaria, zonaHoraria: ZONA } });
   const veterinariaId = vet.id;
 
   const [dueno, recepcion] = await Promise.all([
-    db.usuario.create({ data: { veterinariaId, nombre: "Laura Paz", email: "dueno@demo.com", rol: "DUENO" } }),
-    db.usuario.create({ data: { veterinariaId, nombre: "Carla Núñez", email: "recepcion@demo.com", rol: "RECEPCION" } }),
+    db.usuario.create({ data: { veterinariaId, ...demo.dueno, rol: "DUENO" } }),
+    db.usuario.create({ data: { veterinariaId, ...demo.recepcion, rol: "RECEPCION" } }),
   ]);
 
   // Contraseña de los dos usuarios de demo, desde DEMO_PASSWORD (.env o Variables de Railway)
@@ -145,11 +187,7 @@ async function main() {
   }
 
   const profesionales = await db.profesional.createManyAndReturn({
-    data: [
-      { veterinariaId, nombre: "Dra. Ana Morales", tipo: "VETERINARIO", categorias: ["CLINICA", "PREVENCION", "CIRUGIA", "DIAGNOSTICO"] },
-      { veterinariaId, nombre: "Dr. Pablo Vega", tipo: "VETERINARIO", categorias: ["CLINICA", "PREVENCION", "DIAGNOSTICO"] },
-      { veterinariaId, nombre: "Sol Giménez", tipo: "PELUQUERO", categorias: ["ESTETICA"] },
-    ],
+    data: demo.profesionales.map((p) => ({ veterinariaId, ...p })),
   });
 
   // Lunes a viernes 9 a 13 y 17 a 21; sábado 9 a 13
@@ -190,11 +228,11 @@ async function main() {
   const ahora = new Date();
   const hoy = diaLocal(ahora, ZONA);
 
-  // El Dr. Vega tiene un día de capacitación dentro de 3 días
+  // El segundo profesional tiene un día de capacitación dentro de 3 días
   const diaBloqueo = sumarDias(hoy, 3);
-  const vega = profesionales[1];
+  const enCapacitacion = profesionales[1];
   await db.bloqueo.create({
-    data: { veterinariaId, profesionalId: vega.id, inicio: localAUtc(diaBloqueo, "00:00", ZONA), fin: localAUtc(sumarDias(diaBloqueo, 1), "00:00", ZONA), motivo: "Capacitación" },
+    data: { veterinariaId, profesionalId: enCapacitacion.id, inicio: localAUtc(diaBloqueo, "00:00", ZONA), fin: localAUtc(sumarDias(diaBloqueo, 1), "00:00", ZONA), motivo: "Capacitación" },
   });
 
   // Agenda: de hace 28 días a dentro de 7, respetando franjas, categorías y sin superponer
@@ -211,7 +249,7 @@ async function main() {
         if (azar() > (pasado ? 0.55 : 0.4)) continue;
 
         const profesional = elegir(profesionales);
-        if (profesional.id === vega.id && dia === diaBloqueo) continue;
+        if (profesional.id === enCapacitacion.id && dia === diaBloqueo) continue;
         const servicio = elegir(servicios.filter((s) => profesional.categorias.includes(s.categoria)));
         if (min + servicio.duracionMin > aMinutos(franja.hasta)) continue;
 
@@ -297,11 +335,15 @@ async function main() {
   await db.aplicacionVacuna.createMany({ data: vacunas });
 
   const contar = (estado: EstadoTurno) => creados.filter((t) => t.estado === estado).length;
-  console.log(`Huellitas lista: ${servicios.length} servicios, ${clientes.length} clientes, ${mascotas.length} mascotas.`);
+  console.log(`${demo.veterinaria.nombre} lista: ${servicios.length} servicios, ${clientes.length} clientes, ${mascotas.length} mascotas.`);
   console.log(
     `Turnos: ${creados.length} (atendidos ${contar("ATENDIDO")}, ausentes ${contar("AUSENTE")}, cancelados ${contar("CANCELADO")}, confirmados ${contar("CONFIRMADO")}, pendientes ${contar("PENDIENTE")}).`,
   );
   console.log(`Pagos: ${pagosCreados.length + (equivocado ? 2 : 0)} · Vacunas: ${vacunas.length}.`);
+}
+
+async function main() {
+  for (const demo of DEMOS) await sembrar(demo);
 }
 
 main()
