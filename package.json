@@ -13,7 +13,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@date-fns/tz": "^1.5.0",
     "@prisma/client": "6.19",
+    "date-fns": "^4.4.0",
     "next": "16.4.3",
     "prisma": "6.19",
     "react": "19.3.0",
@@ -35,5 +37,8 @@
     "@prisma/engines@6.19.3": true,
     "prisma@6.19.3": true,
     "unrs-resolver@1.12.2": true
+  },
+  "prisma": {
+    "seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON prisma/seed.ts"
   }
 }
