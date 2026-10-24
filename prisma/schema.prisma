@@ -1,4 +1,6 @@
-// Modelo de datos: se completa en la Etapa 1 según docs/03-modelo-datos.md
+// Modelo de datos según docs/03-modelo-datos.md.
+// Toda tabla de negocio lleva veterinariaId; el filtro por veterinaria se hace con lib/tenant.ts.
+// Fechas absolutas en timestamptz (UTC); montos en Decimal.
 
 generator client {
   provider = "prisma-client-js"
@@ -7,4 +9,328 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Rol {
+  DUENO
+  RECEPCION
+}
+
+enum TipoProfesional {
+  VETERINARIO
+  PELUQUERO
+}
+
+enum CategoriaServicio {
+  CLINICA
+  PREVENCION
+  ESTETICA
+  CIRUGIA
+  DIAGNOSTICO
+}
+
+enum EspecieServicio {
+  PERRO
+  GATO
+  TODAS
+}
+
+enum Especie {
+  PERRO
+  GATO
+  OTRO
+}
+
+enum Sexo {
+  MACHO
+  HEMBRA
+  SIN_DATO
+}
+
+enum EstadoTurno {
+  PENDIENTE
+  CONFIRMADO
+  ATENDIDO
+  AUSENTE
+  CANCELADO
+}
+
+enum OrigenTurno {
+  WEB
+  MOSTRADOR
+  WHATSAPP
+  TELEFONO
+}
+
+enum MedioPago {
+  EFECTIVO
+  TRANSFERENCIA
+  MERCADO_PAGO
+  DEBITO
+  CREDITO
+}
+
+// ─── Veterinaria ─────────────────────────────────────────────────────────────
+
+model Veterinaria {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  nombre         String
+  eslogan        String?
+  colorPrimario  String   @default("#1f6b5a")
+  logoUrl        String?
+  direccion      String?
+  whatsapp       String
+  email          String?
+  zonaHoraria    String   @default("America/Argentina/Tucuman")
+  diasReservaMax Int      @default(30)
+  activa         Boolean  @default(true)
+  creadoEn       DateTime @default(now()) @db.Timestamptz(3)
+  actualizadoEn  DateTime @updatedAt @db.Timestamptz(3)
+
+  usuarios      Usuario[]
+  profesionales Profesional[]
+  horarios      HorarioAtencion[]
+  bloqueos      Bloqueo[]
+  servicios     Servicio[]
+  clientes      Cliente[]
+  mascotas      Mascota[]
+  turnos        Turno[]
+  pagos         Pago[]
+  vacunas       AplicacionVacuna[]
+}
+
+// ─── Usuario del panel ───────────────────────────────────────────────────────
+// Better Auth (Etapa 2) usa esta tabla mapeando sus campos a estos nombres
+// y agrega sus propias tablas de sesión y cuenta.
+
+model Usuario {
+  id              String   @id @default(cuid())
+  veterinariaId   String
+  nombre          String
+  email           String   @unique
+  emailVerificado Boolean  @default(false)
+  imagen          String?
+  rol             Rol      @default(RECEPCION)
+  creadoEn        DateTime @default(now()) @db.Timestamptz(3)
+  actualizadoEn   DateTime @updatedAt @db.Timestamptz(3)
+
+  veterinaria      Veterinaria @relation(fields: [veterinariaId], references: [id])
+  turnosCreados    Turno[]
+  pagosRegistrados Pago[]
+
+  @@index([veterinariaId])
+}
+
+// ─── Profesionales y horarios ────────────────────────────────────────────────
+
+model Profesional {
+  id            String              @id @default(cuid())
+  veterinariaId String
+  nombre        String
+  tipo          TipoProfesional
+  categorias    CategoriaServicio[]
+  activo        Boolean             @default(true)
+  creadoEn      DateTime            @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime            @updatedAt @db.Timestamptz(3)
+
+  veterinaria Veterinaria       @relation(fields: [veterinariaId], references: [id])
+  horarios    HorarioAtencion[]
+  bloqueos    Bloqueo[]
+  turnos      Turno[]
+
+  @@index([veterinariaId])
+}
+
+// Una fila por franja. profesionalId nulo = horario general de la veterinaria.
+model HorarioAtencion {
+  id            String   @id @default(cuid())
+  veterinariaId String
+  profesionalId String?
+  diaSemana     Int // 0 = domingo … 6 = sábado
+  desde         String // "HH:mm", hora local
+  hasta         String // "HH:mm", hora local
+  creadoEn      DateTime @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime @updatedAt @db.Timestamptz(3)
+
+  veterinaria Veterinaria  @relation(fields: [veterinariaId], references: [id])
+  profesional Profesional? @relation(fields: [profesionalId], references: [id])
+
+  @@index([veterinariaId, diaSemana])
+  @@index([profesionalId])
+}
+
+// profesionalId nulo = cierra toda la veterinaria (feriado, vacaciones).
+model Bloqueo {
+  id            String   @id @default(cuid())
+  veterinariaId String
+  profesionalId String?
+  inicio        DateTime @db.Timestamptz(3)
+  fin           DateTime @db.Timestamptz(3)
+  motivo        String
+  creadoEn      DateTime @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime @updatedAt @db.Timestamptz(3)
+
+  veterinaria Veterinaria  @relation(fields: [veterinariaId], references: [id])
+  profesional Profesional? @relation(fields: [profesionalId], references: [id])
+
+  @@index([veterinariaId, inicio])
+  @@index([profesionalId, inicio])
+}
+
+// ─── Servicios ───────────────────────────────────────────────────────────────
+
+model Servicio {
+  id               String            @id @default(cuid())
+  veterinariaId    String
+  nombre           String
+  categoria        CategoriaServicio
+  descripcion      String?
+  especie          EspecieServicio   @default(TODAS)
+  duracionMin      Int
+  precio           Decimal           @db.Decimal(12, 2)
+  visibleWeb       Boolean           @default(true)
+  activo           Boolean           @default(true)
+  revacunacionDias Int? // Solo vacunas. Ej. 365
+  orden            Int               @default(0)
+  creadoEn         DateTime          @default(now()) @db.Timestamptz(3)
+  actualizadoEn    DateTime          @updatedAt @db.Timestamptz(3)
+
+  veterinaria Veterinaria        @relation(fields: [veterinariaId], references: [id])
+  turnos      Turno[]
+  vacunas     AplicacionVacuna[]
+
+  @@index([veterinariaId, orden])
+}
+
+// ─── Clientes y mascotas ─────────────────────────────────────────────────────
+
+model Cliente {
+  id            String   @id @default(cuid())
+  veterinariaId String
+  nombre        String // Nombre y apellido
+  telefono      String // Normalizado +549…
+  email         String?
+  notas         String?
+  creadoEn      DateTime @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime @updatedAt @db.Timestamptz(3)
+
+  veterinaria Veterinaria @relation(fields: [veterinariaId], references: [id])
+  mascotas    Mascota[]
+  turnos      Turno[]
+  pagos       Pago[]
+
+  @@unique([veterinariaId, telefono])
+}
+
+model Mascota {
+  id              String    @id @default(cuid())
+  veterinariaId   String
+  clienteId       String
+  nombre          String
+  especie         Especie
+  raza            String?
+  sexo            Sexo      @default(SIN_DATO)
+  fechaNacimiento DateTime? @db.Date // La edad se calcula
+  pesoKg          Decimal?  @db.Decimal(5, 2)
+  notas           String? // Alergias, carácter, etc.
+  creadoEn        DateTime  @default(now()) @db.Timestamptz(3)
+  actualizadoEn   DateTime  @updatedAt @db.Timestamptz(3)
+
+  veterinaria Veterinaria        @relation(fields: [veterinariaId], references: [id])
+  cliente     Cliente            @relation(fields: [clienteId], references: [id])
+  turnos      Turno[]
+  vacunas     AplicacionVacuna[]
+
+  @@index([veterinariaId])
+  @@index([clienteId])
+}
+
+// ─── Turnos ──────────────────────────────────────────────────────────────────
+
+model Turno {
+  id                String      @id @default(cuid())
+  veterinariaId     String
+  inicio            DateTime    @db.Timestamptz(3)
+  fin               DateTime    @db.Timestamptz(3) // inicio + duracionMin
+  servicioId        String
+  profesionalId     String
+  clienteId         String
+  mascotaId         String
+  estado            EstadoTurno @default(PENDIENTE)
+  origen            OrigenTurno
+  precioAcordado    Decimal     @db.Decimal(12, 2) // Copia del precio al reservar
+  comentarioCliente String?
+  notasInternas     String?
+  creadoPorId       String? // Nulo si vino de la web
+  creadoEn          DateTime    @default(now()) @db.Timestamptz(3)
+  actualizadoEn     DateTime    @updatedAt @db.Timestamptz(3)
+
+  veterinaria Veterinaria        @relation(fields: [veterinariaId], references: [id])
+  servicio    Servicio           @relation(fields: [servicioId], references: [id])
+  profesional Profesional        @relation(fields: [profesionalId], references: [id])
+  cliente     Cliente            @relation(fields: [clienteId], references: [id])
+  mascota     Mascota            @relation(fields: [mascotaId], references: [id])
+  creadoPor   Usuario?           @relation(fields: [creadoPorId], references: [id])
+  pagos       Pago[]
+  vacunas     AplicacionVacuna[]
+
+  @@index([veterinariaId, inicio])
+  @@index([profesionalId, inicio])
+  @@index([clienteId])
+}
+
+// ─── Cobros ──────────────────────────────────────────────────────────────────
+// Un pago no se borra: se anula con otro pago de monto negativo que apunta al
+// original con anulaPagoId (único: un pago se anula una sola vez).
+
+model Pago {
+  id              String    @id @default(cuid())
+  veterinariaId   String
+  turnoId         String? // Nulo para un cobro suelto
+  clienteId       String?
+  monto           Decimal   @db.Decimal(12, 2)
+  medio           MedioPago
+  fecha           DateTime  @default(now()) @db.Timestamptz(3)
+  registradoPorId String
+  nota            String?
+  anulaPagoId     String?   @unique
+  creadoEn        DateTime  @default(now()) @db.Timestamptz(3)
+  actualizadoEn   DateTime  @updatedAt @db.Timestamptz(3)
+
+  veterinaria   Veterinaria @relation(fields: [veterinariaId], references: [id])
+  turno         Turno?      @relation(fields: [turnoId], references: [id])
+  cliente       Cliente?    @relation(fields: [clienteId], references: [id])
+  registradoPor Usuario     @relation(fields: [registradoPorId], references: [id])
+  anulaPago     Pago?       @relation("Anulacion", fields: [anulaPagoId], references: [id])
+  anuladoPor    Pago?       @relation("Anulacion")
+
+  @@index([veterinariaId, fecha])
+  @@index([turnoId])
+}
+
+// ─── Vacunas ─────────────────────────────────────────────────────────────────
+// Se crea al marcar ATENDIDO un turno cuyo servicio tiene revacunacionDias,
+// o a mano para vacunas aplicadas antes de usar el sistema (turnoId nulo).
+
+model AplicacionVacuna {
+  id            String   @id @default(cuid())
+  veterinariaId String
+  mascotaId     String
+  servicioId    String
+  turnoId       String?
+  fecha         DateTime @db.Date
+  vence         DateTime @db.Date // fecha + revacunacionDias
+  creadoEn      DateTime @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime @updatedAt @db.Timestamptz(3)
+
+  veterinaria Veterinaria @relation(fields: [veterinariaId], references: [id])
+  mascota     Mascota     @relation(fields: [mascotaId], references: [id])
+  servicio    Servicio    @relation(fields: [servicioId], references: [id])
+  turno       Turno?      @relation(fields: [turnoId], references: [id])
+
+  @@index([mascotaId])
+  @@index([veterinariaId, vence])
 }
