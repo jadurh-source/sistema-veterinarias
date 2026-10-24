@@ -59,7 +59,7 @@ docs/
 
 ```
 npm run dev                      # desarrollo local
-npx prisma migrate dev           # crear y aplicar migración en local
+npm run migracion -- nombre      # crear y aplicar migración en local (reemplaza a prisma migrate dev)
 npx prisma db seed               # cargar datos de demo
 npm run build && npm start       # probar build de producción
 ```
@@ -73,7 +73,7 @@ Base local: `npx prisma dev --name veterinarias --detach` (Postgres local de Pri
 
 **Datos y hosting (Railway)**
 - Nunca usar SQLite ni guardar archivos en el disco del servidor: se borra en cada despliegue.
-- Toda modificación del modelo pasa por `prisma migrate dev` y queda versionada en `prisma/migrations`.
+- Toda modificación del modelo pasa por `npm run migracion -- nombre` (o `prisma migrate dev` con un Postgres común) y queda versionada en `prisma/migrations`.
 - Variables sensibles solo en `.env` (local) y en Variables de Railway. `.env` no se sube a Git; mantener `.env.example` al día.
 - `next.config.ts` con `output: "standalone"`.
 

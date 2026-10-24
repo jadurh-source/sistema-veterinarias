@@ -29,11 +29,11 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 > Hacé la Etapa 1. Traducí docs/03-modelo-datos.md a schema.prisma, creá la migración y el seed de demo. Antes de escribir el seed mostrame el schema para revisarlo.
 
 ## Etapa 2 — Login, roles y estructura del panel
-- [ ] Better Auth con email y contraseña
-- [ ] Rol y `veterinariaId` en la sesión
-- [ ] `lib/tenant.ts`
-- [ ] Protección de `/panel` y de cada server action por rol
-- [ ] Layout del panel con navegación (Agenda, Clientes, Servicios, Caja, Configuración)
+- [x] Better Auth con email y contraseña
+- [x] Rol y `veterinariaId` en la sesión
+- [x] `lib/tenant.ts`
+- [x] Protección de `/panel` y de cada server action por rol (`lib/acciones.ts`, con tests)
+- [x] Layout del panel con navegación (Agenda, Clientes, Servicios, Caja, Configuración)
 
 > Hacé la Etapa 2: login con Better Auth, roles DUENO y RECEPCION según docs/04-reglas-negocio.md sección 8, y el layout del panel con navegación vacía por ahora.
 
@@ -106,3 +106,6 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 | 24/10/2026 | Anulación de pagos: el pago no se borra; se registra otro pago con monto negativo y `anulaPagoId` apuntando al original (único: no se anula dos veces). Quién y cuándo salen de `registradoPorId` y `fecha` del pago inverso |
 | 24/10/2026 | Etapa 1: `AplicacionVacuna` también lleva `veterinariaId` (regla de CLAUDE.md). `Usuario` suma `emailVerificado` e `imagen`, que pide Better Auth. Los usuarios de demo se crean sin contraseña: la contraseña (`DEMO_PASSWORD`) se carga en la Etapa 2, con las tablas de Better Auth. El seed se corre con Node directo (sin tsx), por eso importa `../src/lib/fechas.ts` con extensión |
 | 24/10/2026 | Base local: la URL lleva `pgbouncer=true`; sin eso `prisma dev` falla con "prepared statement already exists" desde la segunda conexión. Si igual aparece, reiniciar: `npx prisma dev stop veterinarias` y `npx prisma dev --name veterinarias --detach` |
+| 24/10/2026 | Etapa 2: el login está en `/ingresar` y se hace desde el navegador contra `/api/auth` (no con server action) para que aplique el límite de intentos de Better Auth (3 cada 10 s). Sin registro público: los usuarios los crea el seed o el alta. Tablas `Sesion`, `Cuenta` y `Verificacion` con campos en español mapeados en `lib/auth.ts`. Las server actions usan `accionProtegida` de `lib/acciones.ts` (sesión + rol + Zod) |
+| 24/10/2026 | Slugs reservados para veterinarias: `panel`, `ingresar`, `api` (son rutas del sistema). Tenerlo en cuenta en la Etapa 9 |
+| 24/10/2026 | Migraciones con la base local: `npm run migracion -- nombre` (`scripts/nueva-migracion.mjs`), porque `prisma migrate dev` falla con la base sombra de `prisma dev` |

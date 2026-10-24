@@ -10,7 +10,8 @@ Requisitos: Node 24. No hace falta Docker: `prisma dev` levanta un Postgres loca
 npm install
 cp .env.example .env          # completar las variables
 npx prisma dev --name veterinarias --detach   # base local; la URL TCP va en DATABASE_URL
-npx prisma migrate dev        # aplica las migraciones
+npx prisma migrate deploy     # aplica las migraciones
+npx prisma db seed            # carga la veterinaria de demo
 npm run dev                   # http://localhost:3000
 ```
 
