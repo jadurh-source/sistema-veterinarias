@@ -27,6 +27,7 @@ Base PostgreSQL vía Prisma. Todas las tablas de negocio tienen `veterinariaId`,
 | nombre | String | |
 | email | String único | |
 | rol | Enum `DUENO`, `RECEPCION` | |
+| emailVerificado, imagen | Boolean, String? | Los pide Better Auth |
 
 ### Profesional
 | Campo | Tipo | Nota |
@@ -116,7 +117,7 @@ Una fila por franja. Si `profesionalId` es nulo, es el horario general de la vet
 | anulaPagoId | String? único | Solo en el pago inverso: apunta al pago que anula. Monto negativo |
 
 ### AplicacionVacuna
-Se crea al cobrar o marcar atendido un turno cuyo servicio tiene `revacunacionDias`.
+Se crea al cobrar o marcar atendido un turno cuyo servicio tiene `revacunacionDias`. Lleva `veterinariaId` como toda tabla de negocio.
 | Campo | Tipo | Nota |
 |---|---|---|
 | mascotaId | String | |

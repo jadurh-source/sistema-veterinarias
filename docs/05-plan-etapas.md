@@ -21,10 +21,10 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 > Leé CLAUDE.md y STACK.md. Hacé la Etapa 0 de docs/05-plan-etapas.md: creá el proyecto Next.js con el stack definido, dejá Prisma conectado a un PostgreSQL local con `npx prisma dev` y prepará todo para desplegar en Railway. Al final dame la lista exacta de pasos que tengo que hacer yo en GitHub y en el panel de Railway.
 
 ## Etapa 1 — Modelo de datos y datos de demo
-- [ ] `schema.prisma` completo según docs/03-modelo-datos.md
-- [ ] Primera migración
-- [ ] `seed.ts` con la veterinaria "Huellitas" y datos relativos a la fecha actual
-- [ ] `lib/db.ts`, `lib/fechas.ts`, `lib/dinero.ts`
+- [x] `schema.prisma` completo según docs/03-modelo-datos.md
+- [x] Primera migración
+- [x] `seed.ts` con la veterinaria "Huellitas" y datos relativos a la fecha actual
+- [x] `lib/db.ts`, `lib/fechas.ts`, `lib/dinero.ts` (con tests)
 
 > Hacé la Etapa 1. Traducí docs/03-modelo-datos.md a schema.prisma, creá la migración y el seed de demo. Antes de escribir el seed mostrame el schema para revisarlo.
 
@@ -104,3 +104,5 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 | 24/10/2026 | Pendientes: `railway.json` deja de funcionar el 01/12/2026: migrar a `.railway/railway.ts` antes. `npm audit` marca deepmerge-ts (dependencia de la CLI de Prisma 6, solo en build); se resuelve con Prisma 7 |
 | 24/10/2026 | Railway: alerta de gasto por email a USD 10 y sin límite duro (el límite es por workspace y apagaría también Miel del Alba y Nutri Mica) |
 | 24/10/2026 | Anulación de pagos: el pago no se borra; se registra otro pago con monto negativo y `anulaPagoId` apuntando al original (único: no se anula dos veces). Quién y cuándo salen de `registradoPorId` y `fecha` del pago inverso |
+| 24/10/2026 | Etapa 1: `AplicacionVacuna` también lleva `veterinariaId` (regla de CLAUDE.md). `Usuario` suma `emailVerificado` e `imagen`, que pide Better Auth. Los usuarios de demo se crean sin contraseña: la contraseña (`DEMO_PASSWORD`) se carga en la Etapa 2, con las tablas de Better Auth. El seed se corre con Node directo (sin tsx), por eso importa `../src/lib/fechas.ts` con extensión |
+| 24/10/2026 | Base local: la URL lleva `pgbouncer=true`; sin eso `prisma dev` falla con "prepared statement already exists" desde la segunda conexión. Si igual aparece, reiniciar: `npx prisma dev stop veterinarias` y `npx prisma dev --name veterinarias --detach` |
