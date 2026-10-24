@@ -4,6 +4,7 @@
 // Se ejecuta con Node (sin compilar): por eso los imports llevan extensión .ts.
 
 import { PrismaClient, Prisma } from "@prisma/client";
+import { hashPassword } from "better-auth/crypto";
 import type {
   CategoriaServicio,
   Especie,
@@ -129,6 +130,19 @@ async function main() {
     db.usuario.create({ data: { veterinariaId, nombre: "Laura Paz", email: "dueno@demo.com", rol: "DUENO" } }),
     db.usuario.create({ data: { veterinariaId, nombre: "Carla Núñez", email: "recepcion@demo.com", rol: "RECEPCION" } }),
   ]);
+
+  // Contraseña de los dos usuarios de demo, desde DEMO_PASSWORD (.env o Variables de Railway)
+  const contrasena = process.env.DEMO_PASSWORD;
+  if (contrasena && contrasena.length >= 8) {
+    const hash = await hashPassword(contrasena);
+    for (const usuario of [dueno, recepcion]) {
+      await db.cuenta.create({
+        data: { id: crypto.randomUUID(), usuarioId: usuario.id, cuentaId: usuario.id, proveedorId: "credential", contrasena: hash },
+      });
+    }
+  } else {
+    console.warn("Sin DEMO_PASSWORD (mínimo 8 caracteres): los usuarios de demo no van a poder ingresar.");
+  }
 
   const profesionales = await db.profesional.createManyAndReturn({
     data: [
