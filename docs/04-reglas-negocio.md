@@ -50,7 +50,7 @@ PENDIENTE ──Confirmar──► CONFIRMADO ──Cobrar / Atendido──► A
 - Cobrar un turno CONFIRMADO lo pasa a ATENDIDO.
 - Se admite pagar un turno en partes (más de un pago). El turno queda "Cobrado" cuando la suma de pagos alcanza `precioAcordado`.
 - Medios de pago: Efectivo, Transferencia, Mercado Pago, Débito, Crédito.
-- Un pago registrado no se borra: se anula con un movimiento inverso y queda la trazabilidad (quién y cuándo).
+- Un pago registrado no se borra: se anula con un movimiento inverso (otro pago con el mismo monto en negativo y `anulaPagoId` apuntando al original). Quién y cuándo quedan en `registradoPorId` y `fecha` del pago inverso. Un pago se anula una sola vez.
 - Ingresos de los reportes = suma de pagos por fecha de pago, no por fecha del turno.
 
 ## 5. Clientes y mascotas

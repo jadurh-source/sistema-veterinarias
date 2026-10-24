@@ -15,7 +15,7 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 - [x] `.env.example` con todas las variables
 - [x] Repositorio en GitHub (jadurh-source/sistema-veterinarias)
 - [x] Proyecto en Railway con servicio app + PostgreSQL, `DATABASE_URL` como referencia, pre-deploy `npx prisma migrate deploy`
-- [ ] Límite de gasto y alerta configurados en Railway
+- [x] Límite de gasto y alerta configurados en Railway (alerta por email a USD 10, sin límite duro: es por workspace y cortaría todas las apps)
 - [x] Página "Hola" visible en el dominio de Railway (https://app-production-3c13.up.railway.app)
 
 > Leé CLAUDE.md y STACK.md. Hacé la Etapa 0 de docs/05-plan-etapas.md: creá el proyecto Next.js con el stack definido, dejá Prisma conectado a un PostgreSQL local con `npx prisma dev` y prepará todo para desplegar en Railway. Al final dame la lista exacta de pasos que tengo que hacer yo en GitHub y en el panel de Railway.
@@ -101,4 +101,6 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 | 24/10/2026 | Next.js 16.4.3 y Prisma 6.19 (misma línea que Yogo Bonito; Prisma 7 pide adaptador de driver y config aparte, se evalúa más adelante) |
 | 24/10/2026 | Etapa 0: `railway.json` define build, start y pre-deploy (`npx prisma migrate deploy`), así no se cargan a mano en el panel. `npm start` corre `scripts/iniciar.mjs`, que fuerza `HOSTNAME=0.0.0.0` para el servidor standalone. `lib/db.ts` se adelantó a esta etapa para que la página de inicio verifique la conexión a la base |
 | 24/10/2026 | Railway: proyecto `sistema-veterinarias` con servicios `app` y `Postgres`. Los primeros builds fallaron porque `public/` quedó vacía y Git no la sube; `scripts/copiar-standalone.mjs` ahora la copia solo si existe |
-| 24/10/2026 | Pendientes: el límite de gasto de Railway es por workspace (afecta a todas las apps), lo decide Hussain. `railway.json` deja de funcionar el 01/12/2026: migrar a `.railway/railway.ts` antes. `npm audit` marca deepmerge-ts (dependencia de la CLI de Prisma 6, solo en build); se resuelve con Prisma 7 |
+| 24/10/2026 | Pendientes: `railway.json` deja de funcionar el 01/12/2026: migrar a `.railway/railway.ts` antes. `npm audit` marca deepmerge-ts (dependencia de la CLI de Prisma 6, solo en build); se resuelve con Prisma 7 |
+| 24/10/2026 | Railway: alerta de gasto por email a USD 10 y sin límite duro (el límite es por workspace y apagaría también Miel del Alba y Nutri Mica) |
+| 24/10/2026 | Anulación de pagos: el pago no se borra; se registra otro pago con monto negativo y `anulaPagoId` apuntando al original (único: no se anula dos veces). Quién y cuándo salen de `registradoPorId` y `fecha` del pago inverso |

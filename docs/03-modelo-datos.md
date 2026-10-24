@@ -113,6 +113,7 @@ Una fila por franja. Si `profesionalId` es nulo, es el horario general de la vet
 | fecha | DateTime | |
 | registradoPorId | String | |
 | nota | String? | |
+| anulaPagoId | String? único | Solo en el pago inverso: apunta al pago que anula. Monto negativo |
 
 ### AplicacionVacuna
 Se crea al cobrar o marcar atendido un turno cuyo servicio tiene `revacunacionDias`.
