@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diaLocal, diaSemanaLocal, horaLocal, localAUtc, sumarDias } from "./fechas";
+import { describirDia, diaLocal, diaSemanaLocal, horaLocal, localAUtc, sumarDias } from "./fechas";
 
 const ZONA = "America/Argentina/Tucuman"; // UTC-3, sin horario de verano
 
@@ -18,5 +18,13 @@ describe("fechas", () => {
 
   it("suma días cruzando fin de mes", () => {
     expect(sumarDias("2026-10-30", 3)).toBe("2026-11-02");
+  });
+});
+
+describe("describirDia", () => {
+  it("dice hoy, mañana o el día con su fecha", () => {
+    expect(describirDia("2026-11-03", "2026-11-03")).toBe("hoy");
+    expect(describirDia("2026-11-04", "2026-11-03")).toBe("mañana");
+    expect(describirDia("2026-11-05", "2026-11-03")).toBe("jueves 5 de noviembre");
   });
 });

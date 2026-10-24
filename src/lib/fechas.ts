@@ -49,3 +49,22 @@ export function formatearDia(fecha: Date, zona = ZONA_POR_DEFECTO): string {
 export function formatearFechaHora(fecha: Date, zona = ZONA_POR_DEFECTO): string {
   return format(enZona(fecha, zona), "dd/MM/yyyy HH:mm");
 }
+
+/** Para elegir el día: "hoy", "mañana" o "jueves 6 de noviembre". */
+export function describirDia(dia: string, hoy: string): string {
+  if (dia === hoy) return "hoy";
+  if (dia === sumarDias(hoy, 1)) return "mañana";
+  const [anio, mes, d] = dia.split("-").map(Number);
+  return format(new Date(anio, mes - 1, d), "EEEE d 'de' MMMM", { locale: es });
+}
+
+/** Día corto para botones: { semana: "jue", numero: "6", mes: "nov" }. */
+export function partesDelDia(dia: string): { semana: string; numero: string; mes: string } {
+  const [anio, mes, d] = dia.split("-").map(Number);
+  const fecha = new Date(anio, mes - 1, d);
+  return {
+    semana: format(fecha, "EEE", { locale: es }).replace(".", ""),
+    numero: String(d),
+    mes: format(fecha, "MMM", { locale: es }).replace(".", ""),
+  };
+}

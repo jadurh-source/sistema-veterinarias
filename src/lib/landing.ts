@@ -18,6 +18,7 @@ export type DatosLanding = {
     direccion: string | null;
     whatsapp: string;
     email: string | null;
+    zonaHoraria: string;
   };
   servicios: {
     id: string;
@@ -57,6 +58,7 @@ export async function datosLanding(slug: string): Promise<DatosLanding | null> {
       direccion: vet.direccion,
       whatsapp: vet.whatsapp,
       email: vet.email,
+      zonaHoraria: vet.zonaHoraria,
     },
     servicios: vet.servicios.map((s) => ({
       id: s.id,

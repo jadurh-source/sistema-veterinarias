@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { DatosLanding } from "@/lib/landing";
 import { enlaceWhatsapp } from "@/lib/contacto";
 import { IconoHuella, IconoWhatsapp } from "@/components/publico/iconos";
+import { ProximoTurno } from "@/components/publico/proximo-turno";
 import fotoPortada from "../../../public/fotos/portada.jpg";
 
 export function Portada({ vet }: { vet: DatosLanding["veterinaria"] }) {
@@ -37,6 +39,9 @@ export function Portada({ vet }: { vet: DatosLanding["veterinaria"] }) {
               <IconoWhatsapp className="size-5 text-[#25d366]" /> Escribinos
             </a>
           </div>
+          <Suspense>
+            <ProximoTurno slug={vet.slug} zona={vet.zonaHoraria} />
+          </Suspense>
         </div>
 
         <div className="relative mx-auto w-full max-w-md md:max-w-none">
