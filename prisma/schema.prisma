@@ -1,0 +1,10 @@
+// Modelo de datos: se completa en la Etapa 1 según docs/03-modelo-datos.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
