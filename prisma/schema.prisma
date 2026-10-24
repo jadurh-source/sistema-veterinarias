@@ -103,8 +103,8 @@ model Veterinaria {
 }
 
 // ─── Usuario del panel ───────────────────────────────────────────────────────
-// Better Auth (Etapa 2) usa esta tabla mapeando sus campos a estos nombres
-// y agrega sus propias tablas de sesión y cuenta.
+// Better Auth usa esta tabla y las de sesión, cuenta y verificación, con los
+// nombres de campo mapeados en src/lib/auth.ts.
 
 model Usuario {
   id              String   @id @default(cuid())
@@ -120,8 +120,57 @@ model Usuario {
   veterinaria      Veterinaria @relation(fields: [veterinariaId], references: [id])
   turnosCreados    Turno[]
   pagosRegistrados Pago[]
+  sesiones         Sesion[]
+  cuentas          Cuenta[]
 
   @@index([veterinariaId])
+}
+
+model Sesion {
+  id            String   @id
+  usuarioId     String
+  token         String   @unique
+  expiraEn      DateTime @db.Timestamptz(3)
+  ip            String?
+  agenteUsuario String?
+  creadoEn      DateTime @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime @updatedAt @db.Timestamptz(3)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+}
+
+// Credenciales del usuario. Con email y contraseña: proveedorId = "credential".
+model Cuenta {
+  id                    String    @id
+  usuarioId             String
+  cuentaId              String
+  proveedorId           String
+  contrasena            String? // Hash, nunca en texto plano
+  tokenAcceso           String?
+  tokenRefresco         String?
+  tokenId               String?
+  tokenAccesoExpiraEn   DateTime? @db.Timestamptz(3)
+  tokenRefrescoExpiraEn DateTime? @db.Timestamptz(3)
+  alcance               String?
+  creadoEn              DateTime  @default(now()) @db.Timestamptz(3)
+  actualizadoEn         DateTime  @updatedAt @db.Timestamptz(3)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+}
+
+model Verificacion {
+  id            String   @id
+  identificador String
+  valor         String
+  expiraEn      DateTime @db.Timestamptz(3)
+  creadoEn      DateTime @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([identificador])
 }
 
 // ─── Profesionales y horarios ────────────────────────────────────────────────
