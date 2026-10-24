@@ -38,7 +38,7 @@ Navegador ──► Next.js en Railway (un solo servicio)
 2. **Nada se guarda en el disco del servidor.** Por la misma razón: logos o imágenes futuras irán a un almacenamiento externo (bucket), nunca a una carpeta del proyecto.
 3. **Una sola aplicación para todas las veterinarias (multi-veterinaria).** Cada dato lleva el identificador de su veterinaria. Sumar un cliente nuevo es cargar una fila de configuración, no clonar el proyecto ni pagar otro servidor.
 4. **Salida `standalone` de Next.js.** Es el modo que Railway recomienda para alojar Next.js: genera un servidor Node liviano.
-5. **Migraciones automáticas al desplegar.** Railway ejecuta `npx prisma migrate deploy` antes de que la nueva versión reciba tráfico.
+5. **Migraciones automáticas al desplegar.** `npm start` ejecuta `npx prisma migrate deploy` antes de levantar el servidor: si una migración falla, la nueva versión no arranca. (El pre-deploy de Railway vía `railway.json` quedó deprecado y no se aplicaba.)
 6. **Zona horaria explícita.** Los turnos se guardan con fecha y hora absolutas y se muestran en `America/Argentina/Tucuman`. Evita el error clásico de turnos corridos 3 horas.
 7. **Sin pagos online en la v1.** Los cobros se registran en el panel (efectivo, transferencia, Mercado Pago, débito, crédito). La integración de cobro online queda para una etapa posterior.
 
@@ -46,7 +46,7 @@ Navegador ──► Next.js en Railway (un solo servicio)
 
 - Proyecto con dos servicios: **app** (desde el repositorio de GitHub) y **PostgreSQL** (+ New → Database → PostgreSQL).
 - Variables de la app: `DATABASE_URL` (referencia al servicio PostgreSQL), `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TZ_APP=America/Argentina/Tucuman`.
-- Comando previo al despliegue: `npx prisma migrate deploy`.
+- Migraciones: las aplica `npm start` al arrancar (no hace falta comando previo al despliegue).
 - Dominio: Settings → Networking → Generate Domain (luego se puede asociar un dominio propio).
 
 ## Control de costos en Railway

@@ -25,5 +25,5 @@ npm run build && npm start    # build de producción (standalone), como en Railw
 
 ## Railway
 
-- Build: `npm run build` · Start: `npm start` · Pre-deploy: `npx prisma migrate deploy`.
+- Build: `npm run build` · Start: `npm start` (aplica las migraciones y levanta el servidor).
 - Variables: ver `.env.example`.

@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build && node scripts/copiar-standalone.mjs",
-    "start": "node scripts/iniciar.mjs",
+    "start": "prisma migrate deploy && node scripts/iniciar.mjs",
     "lint": "eslint",
     "test": "vitest run",
     "migracion": "node scripts/nueva-migracion.mjs"
