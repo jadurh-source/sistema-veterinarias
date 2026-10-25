@@ -1,5 +1,6 @@
 import type { CategoriaServicio, Especie, EspecieServicio, EstadoTurno } from "@prisma/client";
-import { diaSemanaLocal, localAUtc, sumarDias } from "@/lib/fechas";
+import { TZDate } from "@date-fns/tz";
+import { diaLocal, diaSemanaLocal, localAUtc, sumarDias } from "@/lib/fechas";
 import type { Franja } from "@/lib/horarios";
 
 // Cálculo de horarios libres (docs/04-reglas-negocio.md, secciones 1, 2 y 7).
@@ -135,4 +136,59 @@ export function diasConHorarios(
     if (horarios.length > 0) resultado.push({ dia, horarios });
   }
   return resultado;
+}
+
+export type EvaluacionProfesional = {
+  id: string;
+  nombre: string;
+  /** null si está libre; si no, la advertencia para mostrar en el panel. */
+  problema: null | "Fuera de su horario" | "Tiene otro turno" | "Bloqueado";
+};
+
+/**
+ * Para cargar un turno desde el panel en cualquier horario: evalúa cada profesional que
+ * atiende la categoría. Primero los libres (el que tiene menos turnos ese día), después
+ * los que tienen alguna advertencia. El panel puede cargar igual, mostrando la advertencia.
+ */
+export function evaluarHorario(
+  ctx: ContextoDisponibilidad,
+  inicio: Date,
+  servicio: ServicioAReservar,
+  excluirTurno?: { inicio: Date; fin: Date; profesionalId: string },
+): EvaluacionProfesional[] {
+  const fin = new Date(inicio.getTime() + servicio.duracionMin * 60_000);
+  const turno = { inicio, fin };
+  const diaSemana = diaSemanaLocal(inicio, ctx.zona);
+  const minInicio = aMinutosLocal(inicio, ctx.zona);
+  const minFin = minInicio + servicio.duracionMin;
+  const dia = diaLocal(inicio, ctx.zona);
+  const turnosActivos = ctx.turnos.filter(
+    (t) =>
+      t.estado !== "CANCELADO" &&
+      // Al reprogramar, el turno no choca consigo mismo
+      !(excluirTurno && t.profesionalId === excluirTurno.profesionalId && t.inicio.getTime() === excluirTurno.inicio.getTime()),
+  );
+
+  const evaluados = ctx.profesionales
+    .filter((p) => p.categorias.includes(servicio.categoria))
+    .map((p): EvaluacionProfesional & { cantidad: number } => {
+      const horario = p.horarios.length > 0 ? p.horarios : ctx.horarioGeneral;
+      const dentro = horario.some(
+        (f) => f.diaSemana === diaSemana && aMinutos(f.desde) <= minInicio && minFin <= aMinutos(f.hasta),
+      );
+      const bloqueado = ctx.bloqueos.some((b) => (b.profesionalId === null || b.profesionalId === p.id) && seSuperponen(b, turno));
+      const ocupado = turnosActivos.some((t) => t.profesionalId === p.id && seSuperponen(t, turno));
+      const problema = bloqueado ? "Bloqueado" : ocupado ? "Tiene otro turno" : !dentro ? "Fuera de su horario" : null;
+      const cantidad = turnosActivos.filter((t) => t.profesionalId === p.id && diaLocal(t.inicio, ctx.zona) === dia).length;
+      return { id: p.id, nombre: p.nombre, problema, cantidad };
+    });
+
+  return evaluados
+    .sort((a, b) => Number(a.problema !== null) - Number(b.problema !== null) || a.cantidad - b.cantidad || a.nombre.localeCompare(b.nombre))
+    .map(({ id, nombre, problema }) => ({ id, nombre, problema }));
+}
+
+function aMinutosLocal(fecha: Date, zona: string): number {
+  const local = new TZDate(fecha, zona);
+  return local.getHours() * 60 + local.getMinutes();
 }

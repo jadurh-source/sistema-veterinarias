@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   diasConHorarios,
+  evaluarHorario,
   especieCompatible,
   horariosLibresDelDia,
   type ContextoDisponibilidad,
@@ -139,5 +140,31 @@ describe("especieCompatible", () => {
     expect(especieCompatible("PERRO", "GATO")).toBe(false);
     expect(especieCompatible("GATO", "OTRO")).toBe(false);
     expect(especieCompatible("TODAS", "OTRO")).toBe(true);
+  });
+});
+
+describe("evaluarHorario (carga desde el panel)", () => {
+  const diez = localAUtc(MARTES, "10:00", ZONA);
+
+  it("los libres primero; los demás con su advertencia", () => {
+    const ctx = contexto({ profesionales: [ANA, PABLO], turnos: [turno("ana", "10:00", "10:30")] });
+    expect(evaluarHorario(ctx, diez, CONSULTA)).toEqual([
+      { id: "pablo", nombre: "Pablo", problema: null },
+      { id: "ana", nombre: "Ana", problema: "Tiene otro turno" },
+    ]);
+  });
+
+  it("avisa si queda fuera de horario o hay bloqueo", () => {
+    const quince = localAUtc(MARTES, "15:00", ZONA);
+    expect(evaluarHorario(contexto(), quince, CONSULTA)[0].problema).toBe("Fuera de su horario");
+    const ctx = contexto({ bloqueos: [{ profesionalId: "ana", inicio: MEDIANOCHE, fin: localAUtc("2026-11-04", "00:00", ZONA) }] });
+    expect(evaluarHorario(ctx, diez, CONSULTA)[0].problema).toBe("Bloqueado");
+  });
+
+  it("al reprogramar, el turno no choca consigo mismo", () => {
+    const propio = turno("ana", "10:00", "10:30");
+    const ctx = contexto({ turnos: [propio] });
+    const diezYMedia = localAUtc(MARTES, "10:00", ZONA);
+    expect(evaluarHorario(ctx, diezYMedia, CONSULTA, propio)[0].problema).toBeNull();
   });
 });

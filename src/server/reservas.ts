@@ -110,7 +110,7 @@ export async function reservarTurno(_anterior: EstadoReserva, formData: FormData
       },
     });
     return { ocupado: false as const };
-  });
+  }, { timeout: 15_000 });
 
   if (resultado.ocupado) {
     const alternativas = await siguientesLibres(vet, servicio, inicio, ahora);
