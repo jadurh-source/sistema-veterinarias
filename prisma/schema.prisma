@@ -243,6 +243,7 @@ model Servicio {
   visibleWeb       Boolean           @default(true)
   activo           Boolean           @default(true)
   revacunacionDias Int? // Solo vacunas. Ej. 365
+  fotoUrl          String? // Foto en la landing. Ruta pública o almacenamiento externo, nunca el disco del servidor
   orden            Int               @default(0)
   creadoEn         DateTime          @default(now()) @db.Timestamptz(3)
   actualizadoEn    DateTime          @updatedAt @db.Timestamptz(3)

@@ -1,9 +1,36 @@
+import Image from "next/image";
 import Link from "next/link";
+import type { CategoriaServicio } from "@prisma/client";
 import type { DatosLanding } from "@/lib/landing";
 import { formatearPesos } from "@/lib/dinero";
 import { formatearDuracion } from "@/lib/horarios";
 import { IconoCategoria, IconoReloj } from "@/components/publico/iconos";
 import { NOMBRE_CATEGORIA, ORDEN_CATEGORIAS, TEXTO_ESPECIE } from "@/components/publico/textos";
+
+// Si un servicio no tiene foto propia, se usa una de su categoría
+const FOTO_CATEGORIA: Record<CategoriaServicio, string> = {
+  CLINICA: "/fotos/servicios/consulta-clinica.jpg",
+  PREVENCION: "/fotos/servicios/vacuna-antirrabica.jpg",
+  ESTETICA: "/fotos/servicios/bano-corte-chico.jpg",
+  CIRUGIA: "/fotos/servicios/castracion-gato.jpg",
+  DIAGNOSTICO: "/fotos/servicios/ecografia.jpg",
+};
+
+function FotoServicio({ servicio }: { servicio: DatosLanding["servicios"][number] }) {
+  const src = servicio.fotoUrl ?? FOTO_CATEGORIA[servicio.categoria];
+  const clase = "object-cover transition-transform duration-300 group-hover:scale-105";
+  return (
+    <div className="relative aspect-[4/3] overflow-hidden bg-marca-suave">
+      {src.startsWith("/") ? (
+        <Image src={src} alt={servicio.nombre} fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className={clase} />
+      ) : (
+        // Fotos en un almacenamiento externo (Etapa 3): sin optimizar hasta configurar el dominio
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={servicio.nombre} loading="lazy" className={`absolute inset-0 size-full ${clase}`} />
+      )}
+    </div>
+  );
+}
 
 export function Servicios({ slug, servicios }: { slug: string; servicios: DatosLanding["servicios"] }) {
   const categorias = ORDEN_CATEGORIAS.map((categoria) => ({
@@ -30,7 +57,9 @@ export function Servicios({ slug, servicios }: { slug: string; servicios: DatosL
               </h3>
               <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {servicios.map((s) => (
-                  <li key={s.id} className="flex flex-col rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
+                  <li key={s.id} className="group flex flex-col overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-sm">
+                    <FotoServicio servicio={s} />
+                    <div className="flex flex-1 flex-col p-5">
                     <div className="flex items-start justify-between gap-3">
                       <h4 className="text-lg font-semibold leading-snug text-zinc-900">{s.nombre}</h4>
                       <span className="whitespace-nowrap font-titulos text-2xl font-extrabold text-marca-oscuro">
@@ -55,6 +84,7 @@ export function Servicios({ slug, servicios }: { slug: string; servicios: DatosL
                       >
                         Reservar
                       </Link>
+                    </div>
                     </div>
                   </li>
                 ))}

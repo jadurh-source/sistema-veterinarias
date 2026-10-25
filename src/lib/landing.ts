@@ -28,6 +28,7 @@ export type DatosLanding = {
     especie: EspecieServicio;
     duracionMin: number;
     precio: string; // Decimal serializado: el caché solo guarda datos planos
+    fotoUrl: string | null;
   }[];
   profesionales: { id: string; nombre: string; tipo: TipoProfesional; categorias: CategoriaServicio[] }[];
   horarios: Franja[];
@@ -68,6 +69,7 @@ export async function datosLanding(slug: string): Promise<DatosLanding | null> {
       especie: s.especie,
       duracionMin: s.duracionMin,
       precio: s.precio.toString(),
+      fotoUrl: s.fotoUrl,
     })),
     profesionales: vet.profesionales.map(({ id, nombre, tipo, categorias }) => ({ id, nombre, tipo, categorias })),
     horarios: vet.horarios.map(({ diaSemana, desde, hasta }) => ({ diaSemana, desde, hasta })),
