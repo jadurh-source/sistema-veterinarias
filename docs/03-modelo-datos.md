@@ -65,6 +65,7 @@ Una fila por franja. Si `profesionalId` es nulo, es el horario general de la vet
 | visibleWeb | Boolean | |
 | activo | Boolean | |
 | revacunacionDias | Int? | Solo vacunas. Ej. 365 |
+| fotoUrl | String? | Foto en la landing (ruta pública o almacenamiento externo). Sin foto, se usa una de su categoría |
 | orden | Int | Orden en la landing |
 
 ### Cliente
