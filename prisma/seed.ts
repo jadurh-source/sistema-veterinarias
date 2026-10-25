@@ -69,19 +69,20 @@ const SERVICIOS: {
   precio: string;
   revacunacionDias?: number;
   descripcion?: string;
+  fotoUrl: string;
 }[] = [
-  { nombre: "Consulta clínica", categoria: "CLINICA", especie: "TODAS", duracionMin: 30, precio: "18000", descripcion: "Revisión general, diagnóstico y tratamiento." },
-  { nombre: "Consulta a domicilio", categoria: "CLINICA", especie: "TODAS", duracionMin: 60, precio: "32000", descripcion: "Atención en tu casa dentro de la zona de cobertura." },
-  { nombre: "Vacuna antirrábica", categoria: "PREVENCION", especie: "TODAS", duracionMin: 15, precio: "15000", revacunacionDias: 365 },
-  { nombre: "Vacuna séxtuple", categoria: "PREVENCION", especie: "PERRO", duracionMin: 15, precio: "22000", revacunacionDias: 365 },
-  { nombre: "Vacuna triple felina", categoria: "PREVENCION", especie: "GATO", duracionMin: 15, precio: "20000", revacunacionDias: 365 },
-  { nombre: "Desparasitación", categoria: "PREVENCION", especie: "TODAS", duracionMin: 15, precio: "9000" },
-  { nombre: "Baño y corte perro chico", categoria: "ESTETICA", especie: "PERRO", duracionMin: 60, precio: "25000" },
-  { nombre: "Baño y corte perro grande", categoria: "ESTETICA", especie: "PERRO", duracionMin: 90, precio: "38000" },
-  { nombre: "Castración gato", categoria: "CIRUGIA", especie: "GATO", duracionMin: 90, precio: "65000" },
-  { nombre: "Castración perro", categoria: "CIRUGIA", especie: "PERRO", duracionMin: 120, precio: "95000" },
-  { nombre: "Ecografía", categoria: "DIAGNOSTICO", especie: "TODAS", duracionMin: 30, precio: "35000" },
-  { nombre: "Análisis de sangre", categoria: "DIAGNOSTICO", especie: "TODAS", duracionMin: 15, precio: "28000" },
+  { nombre: "Consulta clínica", fotoUrl: "/fotos/servicios/consulta-clinica.jpg", categoria: "CLINICA", especie: "TODAS", duracionMin: 30, precio: "18000", descripcion: "Revisión general, diagnóstico y tratamiento." },
+  { nombre: "Consulta a domicilio", fotoUrl: "/fotos/servicios/consulta-domicilio.jpg", categoria: "CLINICA", especie: "TODAS", duracionMin: 60, precio: "32000", descripcion: "Atención en tu casa dentro de la zona de cobertura." },
+  { nombre: "Vacuna antirrábica", fotoUrl: "/fotos/servicios/vacuna-antirrabica.jpg", categoria: "PREVENCION", especie: "TODAS", duracionMin: 15, precio: "15000", revacunacionDias: 365 },
+  { nombre: "Vacuna séxtuple", fotoUrl: "/fotos/servicios/vacuna-sextuple.jpg", categoria: "PREVENCION", especie: "PERRO", duracionMin: 15, precio: "22000", revacunacionDias: 365 },
+  { nombre: "Vacuna triple felina", fotoUrl: "/fotos/servicios/vacuna-triple-felina.jpg", categoria: "PREVENCION", especie: "GATO", duracionMin: 15, precio: "20000", revacunacionDias: 365 },
+  { nombre: "Desparasitación", fotoUrl: "/fotos/servicios/desparasitacion.jpg", categoria: "PREVENCION", especie: "TODAS", duracionMin: 15, precio: "9000" },
+  { nombre: "Baño y corte perro chico", fotoUrl: "/fotos/servicios/bano-corte-chico.jpg", categoria: "ESTETICA", especie: "PERRO", duracionMin: 60, precio: "25000" },
+  { nombre: "Baño y corte perro grande", fotoUrl: "/fotos/servicios/bano-corte-grande.jpg", categoria: "ESTETICA", especie: "PERRO", duracionMin: 90, precio: "38000" },
+  { nombre: "Castración gato", fotoUrl: "/fotos/servicios/castracion-gato.jpg", categoria: "CIRUGIA", especie: "GATO", duracionMin: 90, precio: "65000" },
+  { nombre: "Castración perro", fotoUrl: "/fotos/servicios/castracion-perro.jpg", categoria: "CIRUGIA", especie: "PERRO", duracionMin: 120, precio: "95000" },
+  { nombre: "Ecografía", fotoUrl: "/fotos/servicios/ecografia.jpg", categoria: "DIAGNOSTICO", especie: "TODAS", duracionMin: 30, precio: "35000" },
+  { nombre: "Análisis de sangre", fotoUrl: "/fotos/servicios/analisis-sangre.jpg", categoria: "DIAGNOSTICO", especie: "TODAS", duracionMin: 15, precio: "28000" },
 ];
 
 const CLIENTES: { nombre: string; mascotas: { nombre: string; especie: Especie; raza?: string; sexo: "MACHO" | "HEMBRA" }[] }[] = [
@@ -163,10 +164,34 @@ const DEMOS: Demo[] = [
 
 async function sembrar(demo: Demo) {
   semilla = demo.semilla;
+
+  // Los usuarios agregados a mano (no los de demo) se conservan con su contraseña
+  const emailsDemo = [demo.dueno.email, demo.recepcion.email];
+  const propios = await db.usuario.findMany({
+    where: { veterinaria: { slug: demo.veterinaria.slug }, email: { notIn: emailsDemo } },
+    include: { cuentas: true },
+  });
+
   await borrarDemo(demo.veterinaria.slug);
 
   const vet = await db.veterinaria.create({ data: { ...demo.veterinaria, zonaHoraria: ZONA } });
   const veterinariaId = vet.id;
+
+  for (const u of propios) {
+    await db.usuario.create({
+      data: {
+        id: u.id,
+        veterinariaId,
+        nombre: u.nombre,
+        email: u.email,
+        emailVerificado: u.emailVerificado,
+        rol: u.rol,
+        cuentas: {
+          create: u.cuentas.map((c) => ({ id: c.id, cuentaId: c.cuentaId, proveedorId: c.proveedorId, contrasena: c.contrasena })),
+        },
+      },
+    });
+  }
 
   const [dueno, recepcion] = await Promise.all([
     db.usuario.create({ data: { veterinariaId, ...demo.dueno, rol: "DUENO" } }),
