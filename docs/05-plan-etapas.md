@@ -60,11 +60,11 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 > Hacé la Etapa 5. Primero escribí lib/disponibilidad.ts con sus tests cubriendo todas las reglas de docs/04-reglas-negocio.md secciones 1, 2 y 7; recién después el flujo de reserva de docs/02 A2.
 
 ## Etapa 6 — Agenda
-- [ ] Vista día y semana, filtro por profesional
-- [ ] Acciones por estado según docs/04 sección 3
-- [ ] Nuevo turno y reprogramar
-- [ ] Botón WhatsApp con mensaje armado
-- [ ] Contador de pendientes en la navegación
+- [x] Vista día y semana, filtro por profesional
+- [x] Acciones por estado según docs/04 sección 3 (Cobrar queda para la Etapa 8)
+- [x] Nuevo turno y reprogramar
+- [x] Botón WhatsApp con mensaje armado
+- [x] Contador de pendientes en la navegación
 
 > Hacé la Etapa 6: la agenda del panel según docs/02 B1 y los estados de docs/04 sección 3.
 
@@ -115,3 +115,5 @@ Desplegar algo mínimo desde el día uno evita sorpresas de hosting al final.
 | 24/10/2026 | Segunda demo: "Puro Pelo" en `/puropelo` (color, nombre y doctoras Fer, Agus y Ayu de su Instagram; dirección, WhatsApp y precios de ejemplo). Usuarios `dueno@puropelo.demo` y `recepcion@puropelo.demo` con `DEMO_PASSWORD` |
 | 25/10/2026 | Etapa 5: el flujo de reserva vive en la URL (`?especie=&servicio=&dia=&inicio=`), cada paso lo arma el servidor. La acción `reservarTurno` (`src/server/reservas.ts`) es la única sin login: valida con Zod, saca la veterinaria del slug y vuelve a calcular la disponibilidad dentro de una transacción con `pg_advisory_xact_lock` por veterinaria. Probado de punta a punta con dos personas reservando el mismo horario |
 | 25/10/2026 | Etapa 5: especie OTRO solo ve servicios TODAS (agregado a docs/04). WhatsApp se guarda como +549 + 10 dígitos; se acepta con 0, 15 o +54 9. Campo trampa oculto contra robots en el formulario. "Próximo turno disponible" = primer horario de una consulta clínica (o del primer servicio visible) en los próximos 7 días |
+| 25/10/2026 | Etapa 6: reprogramar conserva el estado (un pendiente sigue pendiente). Marcar atendido un turno de vacuna crea la `AplicacionVacuna` con su vencimiento. Desde el panel se puede dar turno en cualquier horario: si el profesional está fuera de horario, ocupado o bloqueado, se muestra la advertencia y se pide "Cargar igual". El panel ofrece también los servicios ocultos en la web. Mañana y tarde se separan a las 14 hs |
+| 25/10/2026 | Etapa 6: dentro de una transacción todas las consultas usan su cliente (`tx`); con una sola conexión (base local) usar `db` traba la transacción. Las transacciones tienen 15 s de tiempo máximo |
